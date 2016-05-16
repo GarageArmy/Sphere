@@ -18,6 +18,8 @@ public class Main extends ApplicationAdapter {
 	public void create () {
 		batch = new SpriteBatch();
         statemgr = new StateManager();
+
+        statemgr.push(new IngameState(statemgr));
     }
 
 	@Override
