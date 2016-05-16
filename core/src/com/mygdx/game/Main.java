@@ -8,24 +8,23 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class Main extends ApplicationAdapter {
 
-	public static  final int HEIGHT = 800;
-	public static  final int WIDTH = 480;
+	public static final int HEIGHT = 800;
+	public static final int WIDTH = 480;
 
 	SpriteBatch batch;
-	Texture img;
+    StateManager statemgr;
 	
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		img = new Texture("badlogic.jpg");
-	}
+        statemgr = new StateManager();
+    }
 
 	@Override
 	public void render () {
-		Gdx.gl.glClearColor(1, 0, 0, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		batch.begin();
-		batch.draw(img, 0, 0);
-		batch.end();
+        statemgr.update();
+        Gdx.gl.glClearColor(1, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        statemgr.render(batch);
 	}
 }
