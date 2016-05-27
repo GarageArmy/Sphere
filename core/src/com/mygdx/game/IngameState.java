@@ -38,8 +38,8 @@ public class IngameState extends State {
         gapSize = 5;
         sliceResolution = 15;
         circleSlices = new Mesh[numLayers];
-        shader = new ShaderProgram(Gdx.files.internal("assets/Slices.vert"),
-                Gdx.files.internal("assets/Slices.frag"));
+        shader = new ShaderProgram(Gdx.files.internal("Slices.vert"),
+                Gdx.files.internal("Slices.frag"));
 
         makeSliceMeshes();
     }
