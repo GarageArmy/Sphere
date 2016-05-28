@@ -25,18 +25,26 @@ public class IngameState extends State {
     int sliceSize; //Thickness of slices
     int gapSize; //Size of gaps between layers and between slices
     int sliceResolution; //Number of vertices per arc (2 arcs per slice)
+
+    int[][] colorSlices;
+
     Mesh circleSlices[]; //Slice meshes (one for every layer) (index 0 is the innermost layer)
     ShaderProgram shader; //ShaderProgram for rendering
 
     IngameState(StateManager sm) {
         super(sm);
-        camera = new OrthographicCamera(800, 480);
+        camera = new OrthographicCamera(480, 800);
 
         numLayers = 6;
         numSlices = 6;
-        sliceSize = 35;
-        gapSize = 5;
+        sliceSize = 25;
+        gapSize = 12;
         sliceResolution = 15;
+
+        // color setup
+        colorSlices = new int[numLayers][numSlices];
+        colorSetup();
+
         circleSlices = new Mesh[numLayers];
         shader = new ShaderProgram(Gdx.files.internal("Slices.vert"),
                 Gdx.files.internal("Slices.frag"));
@@ -88,6 +96,10 @@ public class IngameState extends State {
             circleSlices[i].setVertices(vertices);
             circleSlices[i].setIndices(indices);
         }
+    }
+
+    void colorSetup(){
+
     }
 
     @Override
