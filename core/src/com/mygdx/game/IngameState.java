@@ -116,12 +116,14 @@ public class IngameState extends State {
 
     void inputHandler(){
         if (Gdx.input.isTouched()) {
-            float touchX = Gdx.input.getX();
-            float touchY = Gdx.input.getY();
+            touchPosition.x = Gdx.input.getX();
+            touchPosition.y = Gdx.input.getY();
+            camera.unproject(touchPosition);
+
             //System.out.println(touchX);
           //  System.out.println(touchY);
 
-            if (){
+            if (){ // KÖREGYENLET (BENNE VAN E
             }
         }
     }
