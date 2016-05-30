@@ -25,8 +25,7 @@ public class IngameState extends State {
     int sliceSize; //Thickness of slices
     int gapSize; //Size of gaps between layers and between slices
     int sliceResolution; //Number of vertices per arc (2 arcs per slice)
-
-    int[][] colorSlices;
+    Color[][] colorSlices;
 
     Mesh circleSlices[]; //Slice meshes (one for every layer) (index 0 is the innermost layer)
     ShaderProgram shader; //ShaderProgram for rendering
@@ -35,14 +34,14 @@ public class IngameState extends State {
         super(sm);
         camera = new OrthographicCamera(480, 800);
 
-        numLayers = 6;
-        numSlices = 6;
-        sliceSize = 25;
-        gapSize = 12;
+        numLayers = 5;
+        numSlices = 5;
+        sliceSize = 30;
+        gapSize = 8;
         sliceResolution = 15;
 
         // color setup
-        colorSlices = new int[numLayers][numSlices];
+        colorSlices = new Color[numLayers][numSlices];
         colorSetup();
 
         circleSlices = new Mesh[numLayers];
@@ -99,12 +98,37 @@ public class IngameState extends State {
     }
 
     void colorSetup(){
+        colorSlices[0][0] = Color.BLUE; colorSlices[0][1] = Color.RED; colorSlices[0][2] = Color.YELLOW;
+        colorSlices[0][3] = Color.GREEN; colorSlices[0][4] = Color.PURPLE;
 
+        colorSlices[1][0] = Color.BLUE; colorSlices[1][1] = Color.RED; colorSlices[1][2] = Color.YELLOW;
+        colorSlices[1][3] = Color.GREEN; colorSlices[1][4] = Color.PURPLE;
+
+        colorSlices[2][0] = Color.BLUE; colorSlices[2][1] = Color.RED; colorSlices[2][2] = Color.YELLOW;
+        colorSlices[2][3] = Color.GREEN; colorSlices[2][4] = Color.PURPLE;
+
+        colorSlices[3][0] = Color.BLUE; colorSlices[3][1] = Color.RED; colorSlices[3][2] = Color.YELLOW;
+        colorSlices[3][3] = Color.GREEN; colorSlices[3][4] = Color.PURPLE;
+
+        colorSlices[4][0] = Color.BLUE; colorSlices[4][1] = Color.RED; colorSlices[4][2] = Color.YELLOW;
+        colorSlices[4][3] = Color.GREEN; colorSlices[4][4] = Color.PURPLE;
+    }
+
+    void inputHandler(){
+        if (Gdx.input.isTouched()) {
+            float touchX = Gdx.input.getX();
+            float touchY = Gdx.input.getY();
+            //System.out.println(touchX);
+          //  System.out.println(touchY);
+
+            if (){
+            }
+        }
     }
 
     @Override
     public void update() {
-
+        inputHandler();
     }
 
     @Override
@@ -114,6 +138,7 @@ public class IngameState extends State {
         //TODO Make sensible rendering code!
         shader.begin();
         shader.setUniformMatrix("u_combined", camera.combined);
+        int j = 0;
         for(int i = 0; i < numSlices; i++)
             for (Mesh circleSlice : circleSlices) {
                 Matrix4 mat = new Matrix4(
@@ -123,8 +148,9 @@ public class IngameState extends State {
 
                 shader.setUniformMatrix("u_world", mat);
 
-                shader.setUniformf("u_color", MathUtils.random(1f), MathUtils.random(1f), MathUtils.random(1f), 1f);
+                shader.setUniformf("u_color", colorSlices[i][j]);
                 circleSlice.render(shader, GL20.GL_TRIANGLES);
+                j++; if (j==5) j = 0;
             }
         shader.end();
     }
