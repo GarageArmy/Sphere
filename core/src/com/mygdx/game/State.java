@@ -18,6 +18,7 @@ public abstract class State {
 
     public State (StateManager sm) {
         stateManager = sm;
+        touchPosition = new Vector3();
     }
 
     public void render (SpriteBatch batch) {

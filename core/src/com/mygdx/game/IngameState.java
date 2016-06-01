@@ -32,12 +32,12 @@ public class IngameState extends State {
 
     IngameState(StateManager sm) {
         super(sm);
-        camera = new OrthographicCamera(480, 800);
+        camera = new OrthographicCamera(480, 480 * Gdx.app.getGraphics().getHeight() /Gdx.app.getGraphics().getWidth());
 
         numLayers = 5;
         numSlices = 5;
         sliceSize = 30;
-        gapSize = 8;
+        gapSize = 6;
         sliceResolution = 15;
 
         // color setup
@@ -120,11 +120,27 @@ public class IngameState extends State {
             touchPosition.y = Gdx.input.getY();
             camera.unproject(touchPosition);
 
-            //System.out.println(touchX);
-          //  System.out.println(touchY);
+           // System.out.println(touchPosition.x);
+           // System.out.println(touchPosition.y);
 
-            if (){ // KÖREGYENLET (BENNE VAN E
+            // Checking which layer touched
+            boolean layerTouch = false;
+            for (int i = 1; i <= numLayers; i++){
+                int r = i * gapSize + i * sliceSize;
+                System.out.println(Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2));
+                if (Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2) < r * r){
+                    System.out.println(i);
+                    layerTouch = true;
+                    break;
+                }
             }
+
+            // Checking which slice touched
+            if (layerTouch){
+
+            }
+
+
         }
     }
 
