@@ -120,14 +120,13 @@ public class IngameState extends State {
             touchPosition.y = Gdx.input.getY();
             camera.unproject(touchPosition);
 
-           // System.out.println(touchPosition.x);
+          //  System.out.println(touchPosition.x);
            // System.out.println(touchPosition.y);
 
             // Checking which layer touched
             boolean layerTouch = false;
             for (int i = 1; i <= numLayers; i++){
                 int r = i * gapSize + i * sliceSize;
-                System.out.println(Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2));
                 if (Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2) < r * r){
                     System.out.println(i);
                     layerTouch = true;
@@ -137,6 +136,17 @@ public class IngameState extends State {
 
             // Checking which slice touched
             if (layerTouch){
+                double degree;
+                if (touchPosition.y >= 0) {
+                    double c = Math.sqrt(Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2));
+                    degree = Math.asin((double)touchPosition.x / c) * 180 / Math.PI;
+                    System.out.println(degree);
+                }
+                else {
+                    double c = Math.sqrt(Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2));
+                    degree = 180 - (Math.asin((double)touchPosition.x / c) * 180 / Math.PI);
+                    System.out.println(degree);
+                }
 
             }
 
