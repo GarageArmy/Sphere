@@ -14,11 +14,11 @@ public class StateManager extends Stack<State> {
 
     }
 
-    public void update () {
+    public void update() {
         peek().update();
     }
 
-    public void render (SpriteBatch batch) {
+    public void render(SpriteBatch batch) {
         peek().render(batch);
     }
 }

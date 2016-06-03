@@ -34,7 +34,7 @@ public class IngameState extends State {
     IngameState(StateManager sm) {
         super(sm);
         camera = new OrthographicCamera(480,
-            480 * Gdx.app.getGraphics().getHeight() / Gdx.app.getGraphics().getWidth());
+                480 * Gdx.app.getGraphics().getHeight() / Gdx.app.getGraphics().getWidth());
 
         //Color setup
         colorSlices = new Color[numLayers][numSlices];
@@ -74,7 +74,7 @@ public class IngameState extends State {
             //Index generation
             j = 0;
             k = 0;
-            while(j < sliceResolution - 1) {
+            while (j < sliceResolution - 1) {
                 indices[k++] = j;
                 indices[k++] = (short) (j + 1);
                 indices[k++] = (short) (j + sliceResolution);
@@ -93,69 +93,78 @@ public class IngameState extends State {
         }
     }
 
-    void colorSetup(){
-        colorSlices[0][0] = Color.BLUE; colorSlices[0][1] = Color.RED; colorSlices[0][2] = Color.YELLOW;
-        colorSlices[0][3] = Color.GREEN; colorSlices[0][4] = Color.PURPLE;
+    void colorSetup() {
+        for (int slice = 0; slice < numSlices; slice++) {
+            Color c;
+            switch (slice) {
+                case 0:
+                    c = Color.BLUE;
+                    break;
+                case 1:
+                    c = Color.RED;
+                    break;
+                case 2:
+                    c = Color.YELLOW;
+                    break;
+                case 3:
+                    c = Color.GREEN;
+                    break;
+                case 4:
+                    c = Color.PURPLE;
+                    break;
+                default:
+                    c = Color.WHITE;
+                    break;
+            }
 
-        colorSlices[1][0] = Color.BLUE; colorSlices[1][1] = Color.RED; colorSlices[1][2] = Color.YELLOW;
-        colorSlices[1][3] = Color.GREEN; colorSlices[1][4] = Color.PURPLE;
-
-        colorSlices[2][0] = Color.BLUE; colorSlices[2][1] = Color.RED; colorSlices[2][2] = Color.YELLOW;
-        colorSlices[2][3] = Color.GREEN; colorSlices[2][4] = Color.PURPLE;
-
-        colorSlices[3][0] = Color.BLUE; colorSlices[3][1] = Color.RED; colorSlices[3][2] = Color.YELLOW;
-        colorSlices[3][3] = Color.GREEN; colorSlices[3][4] = Color.PURPLE;
-
-        colorSlices[4][0] = Color.BLUE; colorSlices[4][1] = Color.RED; colorSlices[4][2] = Color.YELLOW;
-        colorSlices[4][3] = Color.GREEN; colorSlices[4][4] = Color.PURPLE;
-
+            for (int layer = 0; layer < numLayers; layer++)
+                colorSlices[layer][slice] = c;
+        }
     }
 
-    void inputHandler(){
-        if (Gdx.input.isTouched()) {
-            touchPosition.x = Gdx.input.getX();
-            touchPosition.y = Gdx.input.getY();
-            camera.unproject(touchPosition);
+    void inputHandler() {
+        if (!Gdx.input.isTouched()) return;
 
-            //System.out.println(touchPosition.x);
-            //System.out.println(touchPosition.y);
+        touchPosition.x = Gdx.input.getX();
+        touchPosition.y = Gdx.input.getY();
+        camera.unproject(touchPosition);
 
-            //Checking which layer was touched
-            boolean layerTouch = false;
-            for (int i = 1; i <= numLayers; i++){
-                int r = i * gapSize + i * sliceSize;
-                if (Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2) < r * r){
-                    System.out.println(i);
-                    layerTouch = true;
-                    break;
-                }
+        //System.out.println(touchPosition.x);
+        //System.out.println(touchPosition.y);
+
+        //Checking which layer was touched
+        boolean layerTouch = false;
+        for (int i = 1; i <= numLayers; i++) {
+            int r = i * gapSize + i * sliceSize;
+            if (Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2) < r * r) {
+                System.out.println(i);
+                layerTouch = true;
+                break;
             }
-
-            //Implementation with Math.atan2(y, x) is much simpler (look it up)
-            //Checking which slice touched
-            if(layerTouch) {
-                double degree = MathUtils.atan2(touchPosition.y, touchPosition.x)
-                        * MathUtils.radiansToDegrees;
-            }
-
-            //Implementation with atan2(y, x) is MUCH simpler (look it up)
-            /*{
-                double degree;
-                if (touchPosition.y >= 0) {
-                    double c = Math.sqrt(Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2));
-                    degree = Math.asin((double)touchPosition.x / c) * 180 / Math.PI;
-                    System.out.println(degree);
-                }
-                else {
-                    double c = Math.sqrt(Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2));
-                    degree = 180 - (Math.asin((double)touchPosition.x / c) * 180 / Math.PI);
-                    System.out.println(degree);
-                }
-
-            }*/
-
-
         }
+
+        //Implementation with Math.atan2(y, x) is much simpler (look it up)
+        //Checking which slice touched
+        if (layerTouch) {
+            double degree = MathUtils.atan2(touchPosition.y, touchPosition.x)
+                    * MathUtils.radiansToDegrees;
+        }
+
+        //Implementation with atan2(y, x) is MUCH simpler (look it up)
+        /*{
+            double degree;
+            if (touchPosition.y >= 0) {
+                double c = Math.sqrt(Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2));
+                degree = Math.asin((double)touchPosition.x / c) * 180 / Math.PI;
+                System.out.println(degree);
+            }
+            else {
+                double c = Math.sqrt(Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2));
+                degree = 180 - (Math.asin((double)touchPosition.x / c) * 180 / Math.PI);
+                System.out.println(degree);
+            }
+
+        }*/
     }
 
     @Override
@@ -170,10 +179,10 @@ public class IngameState extends State {
         //TODO Make sensible rendering code!
         shader.begin();
         shader.setUniformMatrix("u_combined", camera.combined);
-        for(int slice = 0; slice < numSlices; slice++) {
+        for (int slice = 0; slice < numSlices; slice++) {
             Matrix4 mat = new Matrix4(new Vector3(MathUtils.cosDeg(360f / numSlices * (slice + .5f)),
-                MathUtils.sinDeg(360f / numSlices * (slice + .5f)), 0).scl(gapSize),
-                new Quaternion(Vector3.Z, 360f / numSlices * slice), new Vector3(1, 1, 1));
+                    MathUtils.sinDeg(360f / numSlices * (slice + .5f)), 0).scl(gapSize),
+                    new Quaternion(Vector3.Z, 360f / numSlices * slice), new Vector3(1, 1, 1));
             shader.setUniformMatrix("u_world", mat);
 
             for (int layer = 0; layer < numLayers; layer++) {
