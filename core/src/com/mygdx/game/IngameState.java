@@ -20,27 +20,23 @@ import com.badlogic.gdx.math.Vector3;
  * Created by Gabriel025 on 2016.05.16.
  */
 public class IngameState extends State {
-    int numLayers; //Number of layers
-    int numSlices; //Number of slices per layer
-    int sliceSize; //Thickness of slices
-    int gapSize; //Size of gaps between layers and between slices
-    int sliceResolution; //Number of vertices per arc (2 arcs per slice)
+    int numLayers = 5; //Number of layers
+    int numSlices = 5; //Number of slices per layer
+    int sliceSize = 30; //Thickness of slices
+    int gapSize = 6; //Size of gaps between layers and between slices
+    int sliceResolution = 15; //Number of vertices per arc (2 arcs per slice)
     Color[][] colorSlices;
+    Vector3 touchPosition = new Vector3();
 
     Mesh circleSlices[]; //Slice meshes (one for every layer) (index 0 is the innermost layer)
     ShaderProgram shader; //ShaderProgram for rendering
 
     IngameState(StateManager sm) {
         super(sm);
-        camera = new OrthographicCamera(480, 480 * Gdx.app.getGraphics().getHeight() /Gdx.app.getGraphics().getWidth());
+        camera = new OrthographicCamera(480,
+            480 * Gdx.app.getGraphics().getHeight() / Gdx.app.getGraphics().getWidth());
 
-        numLayers = 5;
-        numSlices = 5;
-        sliceSize = 30;
-        gapSize = 6;
-        sliceResolution = 15;
-
-        // color setup
+        //Color setup
         colorSlices = new Color[numLayers][numSlices];
         colorSetup();
 
@@ -112,6 +108,7 @@ public class IngameState extends State {
 
         colorSlices[4][0] = Color.BLUE; colorSlices[4][1] = Color.RED; colorSlices[4][2] = Color.YELLOW;
         colorSlices[4][3] = Color.GREEN; colorSlices[4][4] = Color.PURPLE;
+
     }
 
     void inputHandler(){
@@ -120,10 +117,10 @@ public class IngameState extends State {
             touchPosition.y = Gdx.input.getY();
             camera.unproject(touchPosition);
 
-          //  System.out.println(touchPosition.x);
-           // System.out.println(touchPosition.y);
+            //System.out.println(touchPosition.x);
+            //System.out.println(touchPosition.y);
 
-            // Checking which layer touched
+            //Checking which layer was touched
             boolean layerTouch = false;
             for (int i = 1; i <= numLayers; i++){
                 int r = i * gapSize + i * sliceSize;
@@ -134,8 +131,15 @@ public class IngameState extends State {
                 }
             }
 
-            // Checking which slice touched
-            if (layerTouch){
+            //Implementation with Math.atan2(y, x) is much simpler (look it up)
+            //Checking which slice touched
+            if(layerTouch) {
+                double degree = MathUtils.atan2(touchPosition.y, touchPosition.x)
+                        * MathUtils.radiansToDegrees;
+            }
+
+            //Implementation with atan2(y, x) is MUCH simpler (look it up)
+            /*{
                 double degree;
                 if (touchPosition.y >= 0) {
                     double c = Math.sqrt(Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2));
@@ -148,7 +152,7 @@ public class IngameState extends State {
                     System.out.println(degree);
                 }
 
-            }
+            }*/
 
 
         }
@@ -166,20 +170,17 @@ public class IngameState extends State {
         //TODO Make sensible rendering code!
         shader.begin();
         shader.setUniformMatrix("u_combined", camera.combined);
-        int j = 0;
-        for(int i = 0; i < numSlices; i++)
-            for (Mesh circleSlice : circleSlices) {
-                Matrix4 mat = new Matrix4(
-                        new Vector3(MathUtils.cosDeg(360f / numSlices * (i + .5f)),
-                                MathUtils.sinDeg(360f / numSlices * (i + .5f)), 0).scl(gapSize),
-                        new Quaternion(Vector3.Z, 360f / numSlices * i), new Vector3(1, 1, 1));
+        for(int slice = 0; slice < numSlices; slice++) {
+            Matrix4 mat = new Matrix4(new Vector3(MathUtils.cosDeg(360f / numSlices * (slice + .5f)),
+                MathUtils.sinDeg(360f / numSlices * (slice + .5f)), 0).scl(gapSize),
+                new Quaternion(Vector3.Z, 360f / numSlices * slice), new Vector3(1, 1, 1));
+            shader.setUniformMatrix("u_world", mat);
 
-                shader.setUniformMatrix("u_world", mat);
-
-                shader.setUniformf("u_color", colorSlices[i][j]);
-                circleSlice.render(shader, GL20.GL_TRIANGLES);
-                j++; if (j==5) j = 0;
+            for (int layer = 0; layer < numLayers; layer++) {
+                shader.setUniformf("u_color", colorSlices[layer][slice]);
+                circleSlices[layer].render(shader, GL20.GL_TRIANGLES);
             }
+        }
         shader.end();
     }
 }
