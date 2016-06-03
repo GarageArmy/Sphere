@@ -13,12 +13,9 @@ public abstract class State {
 
     protected StateManager stateManager;
     protected Camera camera;
-    protected Vector3 touchPosition;
-
 
     public State (StateManager sm) {
         stateManager = sm;
-        touchPosition = new Vector3();
     }
 
     public void render (SpriteBatch batch) {
