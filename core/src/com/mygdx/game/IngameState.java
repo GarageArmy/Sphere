@@ -21,7 +21,7 @@ import com.badlogic.gdx.math.Vector3;
  */
 public class IngameState extends State {
     int numLayers = 5; //Number of layers
-    int numSlices = 5; //Number of slices per layer
+    int numSlices = 6; //Number of slices per layer
     int sliceSize = 30; //Thickness of slices
     int gapSize = 6; //Size of gaps between layers and between slices
     int sliceResolution = 15; //Number of vertices per arc (2 arcs per slice)
@@ -133,38 +133,40 @@ public class IngameState extends State {
         //System.out.println(touchPosition.y);
 
         //Checking which layer was touched
+        int whichLayer;
+        int whichSlice;
         boolean layerTouch = false;
         for (int i = 1; i <= numLayers; i++) {
             int r = i * gapSize + i * sliceSize;
             if (Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2) < r * r) {
-                System.out.println(i);
+                whichLayer = i;
                 layerTouch = true;
                 break;
             }
         }
 
-        //Implementation with Math.atan2(y, x) is much simpler (look it up)
-        //Checking which slice touched
+        //Checking which slice was touched
         if (layerTouch) {
+            whichSlice = 0;
             double degree = MathUtils.atan2(touchPosition.y, touchPosition.x)
                     * MathUtils.radiansToDegrees;
+            if (degree >= 0) {
+                for (int i = 1; i <= numSlices / 2; i++) {
+                    if (degree < i * 360 / numSlices) {
+                        whichSlice = i;
+                        break;
+                    }
+                }
+            }
+            if (degree < 0) {
+                for (int i = 1 / 2; i <= numSlices / 2; i++) {
+                    if (degree > i * 360 / numSlices * -1) {
+                        whichSlice = 1 + numSlices - i;
+                        break;
+                    }
+                }
+            }
         }
-
-        //Implementation with atan2(y, x) is MUCH simpler (look it up)
-        /*{
-            double degree;
-            if (touchPosition.y >= 0) {
-                double c = Math.sqrt(Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2));
-                degree = Math.asin((double)touchPosition.x / c) * 180 / Math.PI;
-                System.out.println(degree);
-            }
-            else {
-                double c = Math.sqrt(Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2));
-                degree = 180 - (Math.asin((double)touchPosition.x / c) * 180 / Math.PI);
-                System.out.println(degree);
-            }
-
-        }*/
     }
 
     @Override
