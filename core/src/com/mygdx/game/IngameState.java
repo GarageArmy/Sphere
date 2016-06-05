@@ -1,6 +1,5 @@
 package com.mygdx.game;
 
-import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -25,19 +24,15 @@ public class IngameState extends State {
     int sliceSize = 30; //Thickness of slices
     int gapSize = 6; //Size of gaps between layers and between slices
     int sliceResolution = 15; //Number of vertices per arc (2 arcs per slice)
-    Color[][] colorSlices; //Color of each slices
-
-    Vector3 touchPosition = new Vector3();
+    Color[][] sliceColor; //Color of each slices
 
     Mesh circleSlices[]; //Slice meshes (one for every layer) (index 0 is the innermost layer)
     ShaderProgram shader; //ShaderProgram for rendering
 
-
-    int whichLayer;
-    int whichSlice;
-    //Rotating layer
-    float[] angleRotate;
-
+    boolean dragging = false;
+    Vector3 touchPosition = new Vector3(), currentPosition = new Vector3();
+    int dragLayer, dragSlice;
+    float dragAngle;
 
     IngameState(StateManager sm) {
         super(sm);
@@ -45,15 +40,12 @@ public class IngameState extends State {
                 480 * Gdx.app.getGraphics().getHeight() / Gdx.app.getGraphics().getWidth());
 
         //Color setup
-        colorSlices = new Color[numLayers][numSlices];
+        sliceColor = new Color[numLayers][numSlices];
         colorSetup();
 
         circleSlices = new Mesh[numLayers];
         shader = new ShaderProgram(Gdx.files.internal("Slices.vert"),
                 Gdx.files.internal("Slices.frag"));
-        angleRotate = new float[numLayers];
-        for (int i = 0; i < numLayers; i++)
-            angleRotate[i] = 0;
 
         makeSliceMeshes();
     }
@@ -129,83 +121,97 @@ public class IngameState extends State {
             }
 
             for (int layer = 0; layer < numLayers; layer++)
-                colorSlices[layer][slice] = c;
+                sliceColor[layer][slice] = c;
         }
     }
 
     void inputHandler() {
-        if (!Gdx.input.isTouched()) return;
+        if (!Gdx.input.isTouched()) {
+            if(dragging) {
+                //TODO snap rotation by shifting array elements
 
-        touchPosition.x = Gdx.input.getX();
-        touchPosition.y = Gdx.input.getY();
-        camera.unproject(touchPosition);
-        angleRotate[0]++;
-        //System.out.println(touchPosition.x);
-        //System.out.println(touchPosition.y);
-
-        //Checking which layer was touched
-        boolean layerTouch = false;
-        for (int i = 1; i <= numLayers; i++) {
-            int r = i * gapSize + i * sliceSize;
-            if (Math.pow(touchPosition.x, 2) + Math.pow(touchPosition.y, 2) < r * r) {
-                whichLayer = i;
-                layerTouch = true;
-                break;
+                dragLayer = 0;
+                dragSlice = 0;
+                dragAngle = 0;
+                dragging = false;
             }
+            return;
         }
 
-        //Checking which slice was touched
-        if (layerTouch) {
-            whichSlice = 0;
-            double degree = MathUtils.atan2(touchPosition.y, touchPosition.x)
-                    * MathUtils.radiansToDegrees;
-            if (degree >= 0) {
-                for (int i = 1; i <= numSlices / 2; i++) {
-                    if (degree < i * 360 / numSlices) {
-                        whichSlice = i;
-                        break;
-                    }
-                }
+        currentPosition.x = Gdx.input.getX();
+        currentPosition.y = Gdx.input.getY();
+        camera.unproject(currentPosition);
+        if(!dragging)
+        {
+            dragging = true;
+            touchPosition.set(currentPosition);
 
+            dragLayer = MathUtils.floor(touchPosition.len() / (gapSize + sliceSize));
+            if(dragLayer > numLayers)
+            {
+                dragLayer = 0;
+                dragging = false;
+                return;
             }
-            if (degree < 0) {
-                for (int i = 1 / 2; i <= numSlices / 2; i++) {
-                    if (degree > i * 360 / numSlices * -1) {
-                        whichSlice = 1 + numSlices - i;
-                        break;
-                    }
-                }
-            }
+
+            //Note that atan2 returns in the range of [-PI; PI]
+            dragSlice = MathUtils.floor(
+                MathUtils.atan2(touchPosition.y, touchPosition.x) / (MathUtils.PI2 / numSlices));
+            if(dragSlice < 0) dragSlice += numSlices;
         }
+
+        dragAngle = MathUtils.atan2(currentPosition.y, currentPosition.x)
+                - MathUtils.atan2(touchPosition.y, touchPosition.x);
+        dragAngle *= MathUtils.radiansToDegrees;
     }
-
-
 
     @Override
     public void update() {
         inputHandler();
+
+        /* Dragging data
+        Gdx.app.log("Drag information",
+            "\ndragging: " + (dragging ? "true" : "false")
+          + "\ntouchPosition: " + touchPosition.toString()
+          + "\ncurrentPosition: " + currentPosition.toString()
+          + "\ndragAngle: " + dragAngle + "°"
+          + "\ndragLayer: " + dragLayer
+          + "\ndragSlice: " + dragSlice);
+        */
     }
 
     @Override
     public void render(SpriteBatch batch) {
         super.render(batch);
 
-        //TODO Make sensible rendering code!
         shader.begin();
         shader.setUniformMatrix("u_combined", camera.combined);
-        for (int slice = 0; slice < numSlices; slice++) {
-            Matrix4 mat = new Matrix4(new Vector3(MathUtils.cosDeg(360f / numSlices * (slice + .5f)),
-                    MathUtils.sinDeg(360f / numSlices * (slice + .5f)), 0).scl(gapSize),
-                    new Quaternion(Vector3.Z, 360f / numSlices * slice), new Vector3(1, 1, 1));
 
+        Matrix4 mat = new Matrix4(Vector3.Zero, new Quaternion(), new Vector3(1, 1, 1));
+        //new Vector3(MathUtils.cos(MathUtils.PI / numSlices) * gapSize,
+        //MathUtils.sin(MathUtils.PI / numSlices) * gapSize, 0)
+        //TODO generate meshes with the above transform to create gaps
+
+        for (int slice = 0; slice < numSlices; slice++) {
+            shader.setUniformMatrix("u_world", mat);
 
             for (int layer = 0; layer < numLayers; layer++) {
-                shader.setUniformf("u_color", colorSlices[layer][slice]);
-                mat.rotate(new Quaternion(Vector3.Z, angleRotate[layer]));
-                shader.setUniformMatrix("u_world", mat);
-                mat.rotate(new Quaternion(Vector3.Z, -angleRotate[layer]));
+                shader.setUniformf("u_color", sliceColor[layer][slice]);
+
+                if(dragging && layer == dragLayer) {
+                    mat.rotate(Vector3.Z, dragAngle);
+                    shader.setUniformMatrix("u_world", mat);
+                }
+
                 circleSlices[layer].render(shader, GL20.GL_TRIANGLES);
+
+                if(dragging && layer == dragLayer) {
+                    mat.rotate(Vector3.Z, -dragAngle);
+                    shader.setUniformMatrix("u_world", mat);
+                }
             }
+
+            mat.rotate(Vector3.Z, 360f / numSlices);
         }
         shader.end();
     }
