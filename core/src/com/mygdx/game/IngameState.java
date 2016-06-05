@@ -55,9 +55,9 @@ public class IngameState extends State {
         short indices[] = new short[sliceResolution * 6 - 6]; //Vertex array for mesh generation
         Vector2 vec = new Vector2();
         //Translate slices outwards to create radial gaps
-        //TODO Correct the radial gap size (a little trig needs to be done)
-        Vector2 translation = new Vector2(MathUtils.cos(MathUtils.PI / numSlices) * gapSize,
-                MathUtils.sin(MathUtils.PI / numSlices) * gapSize);
+        //FIXME fix input handling for larger slice counts, when this translation is bigger
+        Vector2 translation = new Vector2(gapSize / 2 / MathUtils.sin(MathUtils.PI / numSlices), 0);
+        translation.rotateRad(MathUtils.PI / numSlices);
         float sliceAngle = 360f / numSlices;
 
         for (int i = 0; i < numLayers; i++) {
