@@ -129,11 +129,29 @@ public class IngameState extends State {
         }
     }
 
+    void rotateColorArray(float angle, int layer){
+        // FIX more realistic rotation boundary
+        Color[] prev = new Color[numSlices];
+        int multiplier = (int) angle / (360 / numSlices);
+        if (multiplier < 0) multiplier = numSlices - -1 * multiplier;
+        System.out.println(angle);
+
+        for (int i = 0; i < numSlices; i++){
+            prev[i] = sliceColor[layer][i];
+        }
+
+            for (int i = numSlices - 1; i >= 0; i--){
+                if (i - multiplier >= 0)
+                    sliceColor[dragLayer][i] = prev[i - multiplier];
+                else sliceColor[dragLayer][i] = prev[numSlices - (multiplier - i)];
+            }
+    }
+
     void inputHandler() {
         if (!Gdx.input.isTouched()) {
             if(dragging) {
                 //TODO snap rotation by shifting array elements
-
+                rotateColorArray(dragAngle, dragLayer);
                 dragLayer = 0;
                 dragSlice = 0;
                 dragAngle = 0;
@@ -167,6 +185,8 @@ public class IngameState extends State {
         dragAngle = MathUtils.atan2(currentPosition.y, currentPosition.x)
                 - MathUtils.atan2(touchPosition.y, touchPosition.x);
         dragAngle *= MathUtils.radiansToDegrees;
+
+
     }
 
     @Override
