@@ -20,16 +20,24 @@ import com.badlogic.gdx.math.Vector3;
  * Created by Gabriel025 on 2016.05.16.
  */
 public class IngameState extends State {
-    int numLayers = 5; //Number of layers
+    int numLayers = 6; //Number of layers
     int numSlices = 6; //Number of slices per layer
     int sliceSize = 30; //Thickness of slices
     int gapSize = 6; //Size of gaps between layers and between slices
     int sliceResolution = 15; //Number of vertices per arc (2 arcs per slice)
-    Color[][] colorSlices;
+    Color[][] colorSlices; //Color of each slices
+
     Vector3 touchPosition = new Vector3();
 
     Mesh circleSlices[]; //Slice meshes (one for every layer) (index 0 is the innermost layer)
     ShaderProgram shader; //ShaderProgram for rendering
+
+
+    int whichLayer;
+    int whichSlice;
+    //Rotating layer
+    float[] angleRotate;
+
 
     IngameState(StateManager sm) {
         super(sm);
@@ -43,6 +51,9 @@ public class IngameState extends State {
         circleSlices = new Mesh[numLayers];
         shader = new ShaderProgram(Gdx.files.internal("Slices.vert"),
                 Gdx.files.internal("Slices.frag"));
+        angleRotate = new float[numLayers];
+        for (int i = 0; i < numLayers; i++)
+            angleRotate[i] = 0;
 
         makeSliceMeshes();
     }
@@ -128,13 +139,11 @@ public class IngameState extends State {
         touchPosition.x = Gdx.input.getX();
         touchPosition.y = Gdx.input.getY();
         camera.unproject(touchPosition);
-
+        angleRotate[0]++;
         //System.out.println(touchPosition.x);
         //System.out.println(touchPosition.y);
 
         //Checking which layer was touched
-        int whichLayer;
-        int whichSlice;
         boolean layerTouch = false;
         for (int i = 1; i <= numLayers; i++) {
             int r = i * gapSize + i * sliceSize;
@@ -157,6 +166,7 @@ public class IngameState extends State {
                         break;
                     }
                 }
+
             }
             if (degree < 0) {
                 for (int i = 1 / 2; i <= numSlices / 2; i++) {
@@ -168,6 +178,8 @@ public class IngameState extends State {
             }
         }
     }
+
+
 
     @Override
     public void update() {
@@ -185,10 +197,13 @@ public class IngameState extends State {
             Matrix4 mat = new Matrix4(new Vector3(MathUtils.cosDeg(360f / numSlices * (slice + .5f)),
                     MathUtils.sinDeg(360f / numSlices * (slice + .5f)), 0).scl(gapSize),
                     new Quaternion(Vector3.Z, 360f / numSlices * slice), new Vector3(1, 1, 1));
-            shader.setUniformMatrix("u_world", mat);
+
 
             for (int layer = 0; layer < numLayers; layer++) {
                 shader.setUniformf("u_color", colorSlices[layer][slice]);
+                mat.rotate(new Quaternion(Vector3.Z, angleRotate[layer]));
+                shader.setUniformMatrix("u_world", mat);
+                mat.rotate(new Quaternion(Vector3.Z, -angleRotate[layer]));
                 circleSlices[layer].render(shader, GL20.GL_TRIANGLES);
             }
         }
