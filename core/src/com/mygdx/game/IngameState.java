@@ -54,6 +54,10 @@ public class IngameState extends State {
         float vertices[] = new float[sliceResolution * 2 * 2]; //Vertex array for mesh generation
         short indices[] = new short[sliceResolution * 6 - 6]; //Vertex array for mesh generation
         Vector2 vec = new Vector2();
+        //Translate slices outwards to create radial gaps
+        //TODO Correct the radial gap size (a little trig needs to be done)
+        Vector2 translation = new Vector2(MathUtils.cos(MathUtils.PI / numSlices) * gapSize,
+                MathUtils.sin(MathUtils.PI / numSlices) * gapSize);
         float sliceAngle = 360f / numSlices;
 
         for (int i = 0; i < numLayers; i++) {
@@ -63,8 +67,8 @@ public class IngameState extends State {
 
             short j = 0, k = 0; //j: counter for the while loop; k: index counter
             while (j < sliceResolution * 2) {
-                vertices[k++] = vec.x;
-                vertices[k++] = vec.y;
+                vertices[k++] = vec.x + translation.x;
+                vertices[k++] = vec.y + translation.y;
 
                 j++;
                 if (j == sliceResolution) {
@@ -188,9 +192,6 @@ public class IngameState extends State {
         shader.setUniformMatrix("u_combined", camera.combined);
 
         Matrix4 mat = new Matrix4(Vector3.Zero, new Quaternion(), new Vector3(1, 1, 1));
-        //new Vector3(MathUtils.cos(MathUtils.PI / numSlices) * gapSize,
-        //MathUtils.sin(MathUtils.PI / numSlices) * gapSize, 0)
-        //TODO generate meshes with the above transform to create gaps
 
         for (int slice = 0; slice < numSlices; slice++) {
             shader.setUniformMatrix("u_world", mat);
