@@ -36,8 +36,10 @@ public class IngameState extends State {
 
     IngameState(StateManager sm) {
         super(sm);
-        camera = new OrthographicCamera(480,
-                480 * Gdx.app.getGraphics().getHeight() / Gdx.app.getGraphics().getWidth());
+        camera = new OrthographicCamera(Gdx.app.getGraphics().getWidth(),
+                 Gdx.app.getGraphics().getHeight());
+        sliceSize = Gdx.app.getGraphics().getWidth() / numSlices - Gdx.app.getGraphics().getWidth() * 8 / 10 / numSlices;
+        gapSize = sliceSize / 5;
 
         //Color setup
         sliceColor = new Color[numLayers][numSlices];
@@ -133,8 +135,9 @@ public class IngameState extends State {
         // FIX more realistic rotation range
 
         Color[] prev = new Color[numSlices];
-        int multiplier = (int) angle / (360 / numSlices);
+        int multiplier = MathUtils.floor(angle / (360 / numSlices));
         if (multiplier < 0) multiplier = numSlices - -1 * multiplier;
+        if (Math.abs(angle) > 360 / numSlices * multiplier + 30) multiplier++;
 
         for (int i = 0; i < numSlices; i++){
             prev[i] = sliceColor[layer][i];
@@ -186,7 +189,7 @@ public class IngameState extends State {
                 - MathUtils.atan2(touchPosition.y, touchPosition.x);
         dragAngle *= MathUtils.radiansToDegrees;
         System.out.println(dragAngle);
-        System.out.println(MathUtils.floor(((int) dragAngle) / (360 / numSlices)));
+        System.out.println(MathUtils.floor(dragAngle / (360 / numSlices)));
 
     }
 
