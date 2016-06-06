@@ -24,7 +24,9 @@ public class IngameState extends State {
     int sliceSize = 30; //Thickness of slices
     int gapSize = 6; //Size of gaps between layers and between slices
     int sliceResolution = 15; //Number of vertices per arc (2 arcs per slice)
-    Color[][] sliceColor; //Color of each slices
+    Color[][] sliceColor; //Slice colors
+    /*Indexing: sliceColor[layer][slice] 0th layer is the innermost one,
+      and slices are indexed from 0° counter-clockwise*/
 
     Mesh circleSlices[]; //Slice meshes (one for every layer) (index 0 is the innermost layer)
     ShaderProgram shader; //ShaderProgram for rendering
@@ -36,10 +38,9 @@ public class IngameState extends State {
 
     IngameState(StateManager sm) {
         super(sm);
-        camera = new OrthographicCamera(Gdx.app.getGraphics().getWidth(),
-                 Gdx.app.getGraphics().getHeight());
-        sliceSize = Gdx.app.getGraphics().getWidth() / numSlices - Gdx.app.getGraphics().getWidth() * 8 / 10 / numSlices;
-        gapSize = sliceSize / 5;
+        //FIXME handle resize event (though it's not needed for mobile)
+        camera = new OrthographicCamera(480, 480
+            * Gdx.app.getGraphics().getHeight() / Gdx.app.getGraphics().getWidth());
 
         //Color setup
         sliceColor = new Color[numLayers][numSlices];
@@ -131,8 +132,8 @@ public class IngameState extends State {
         }
     }
 
-    void rotateColorArray(float angle, int layer){
-        // FIX more realistic rotation range
+    void rotateColorArray(float angle, int layer) {
+        //FIXME more realistic rotation range
 
         Color[] prev = new Color[numSlices];
         int multiplier = MathUtils.floor(angle / (360 / numSlices));
@@ -150,11 +151,16 @@ public class IngameState extends State {
             }
     }
 
+    //alternative shifting algorithm, work in progress
+    void rotateLayer(float angle, int layer) {
+        int shift = MathUtils.round(angle * numSlices / 360);
+    }
+
     void inputHandler() {
         if (!Gdx.input.isTouched()) {
             if(dragging) {
-                //TODO snap rotation by shifting array elements
                 rotateColorArray(dragAngle, dragLayer);
+                //rotateLayer(dragAngle, dragLayer);
                 dragLayer = 0;
                 dragSlice = 0;
                 dragAngle = 0;
@@ -188,15 +194,11 @@ public class IngameState extends State {
         dragAngle = MathUtils.atan2(currentPosition.y, currentPosition.x)
                 - MathUtils.atan2(touchPosition.y, touchPosition.x);
         dragAngle *= MathUtils.radiansToDegrees;
-        System.out.println(dragAngle);
-        System.out.println(MathUtils.floor(dragAngle / (360 / numSlices)));
-
     }
 
     @Override
     public void update() {
         inputHandler();
-
         /* Dragging data
         Gdx.app.log("Drag information",
             "\ndragging: " + (dragging ? "true" : "false")
