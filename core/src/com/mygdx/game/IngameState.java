@@ -132,8 +132,9 @@ public class IngameState extends State {
         }
     }
 
+    @Deprecated
     void rotateColorArray(float angle, int layer) {
-        //FIXME more realistic rotation range
+        //more realistic rotation range
 
         Color[] prev = new Color[numSlices];
         int multiplier = MathUtils.floor(angle / (360 / numSlices));
@@ -151,16 +152,22 @@ public class IngameState extends State {
             }
     }
 
-    //alternative shifting algorithm, work in progress
     void rotateLayer(float angle, int layer) {
-        int shift = MathUtils.round(angle * numSlices / 360);
+        int shift = MathUtils.round(angle * numSlices / 360f);
+        if(shift < 0) shift += numSlices;
+        if(shift == numSlices) shift = 0;
+
+        for (int i = 0; i < shift; i++) {
+            Color last = sliceColor[layer][numSlices - 1];
+            System.arraycopy(sliceColor[layer], 0, sliceColor[layer], 1, numSlices - 1);
+            sliceColor[layer][0] = last;
+        }
     }
 
     void inputHandler() {
         if (!Gdx.input.isTouched()) {
             if(dragging) {
-                rotateColorArray(dragAngle, dragLayer);
-                //rotateLayer(dragAngle, dragLayer);
+                rotateLayer(dragAngle, dragLayer);
                 dragLayer = 0;
                 dragSlice = 0;
                 dragAngle = 0;
