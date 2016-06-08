@@ -154,10 +154,8 @@ public class IngameState extends State {
     void inputHandler() {
         if (!Gdx.input.isTouched()) {
             if(dragging) {
-                if (currentSlice == dragSlice && currentLayer == dragLayer + 1 || currentLayer == dragLayer - 1){
-                    changeSlices(dragSlice,currentLayer,dragLayer);
-                } else
                 rotateLayer(dragAngle, dragLayer);
+                changeSlices(currentSlice, dragLayer, currentLayer);
                 dragLayer = 0;
                 dragSlice = 0;
                 dragAngle = 0;
@@ -189,15 +187,14 @@ public class IngameState extends State {
         }
 
         currentLayer = MathUtils.floor(currentPosition.len() / (gapSize + sliceSize));
+        currentLayer = MathUtils.clamp(currentLayer, 0, numLayers - 1);
         currentSlice = MathUtils.floor(
                 MathUtils.atan2(currentPosition.y, currentPosition.x) / (MathUtils.PI2 / numSlices));
         if(currentSlice < 0) currentSlice += numSlices;
 
-
         dragAngle = MathUtils.atan2(currentPosition.y, currentPosition.x)
                 - MathUtils.atan2(touchPosition.y, touchPosition.x);
         dragAngle *= MathUtils.radiansToDegrees;
-
     }
 
     @Override
