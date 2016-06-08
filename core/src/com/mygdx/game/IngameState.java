@@ -21,8 +21,8 @@ import com.badlogic.gdx.math.Vector3;
 public class IngameState extends State {
     int numLayers = 6; //Number of layers
     int numSlices = 6; //Number of slices per layer
-    int sliceSize = 30; //Thickness of slices
-    int gapSize = 6; //Size of gaps between layers and between slices
+    int sliceSize = 25; //Thickness of slices
+    int gapSize = 10; //Size of gaps between layers and between slices
     int sliceResolution = 15; //Number of vertices per arc (2 arcs per slice)
     Color[][] sliceColor; //Slice colors
     /*Indexing: sliceColor[layer][slice] 0th layer is the innermost one,
@@ -34,11 +34,11 @@ public class IngameState extends State {
     boolean dragging = false;
     Vector3 touchPosition = new Vector3(), currentPosition = new Vector3();
     int dragLayer, dragSlice;
+    int currentLayer, currentSlice;
     float dragAngle;
 
     IngameState(StateManager sm) {
         super(sm);
-        //FIXME handle resize event (though it's not needed for mobile)
         camera = new OrthographicCamera(480, 480
             * Gdx.app.getGraphics().getHeight() / Gdx.app.getGraphics().getWidth());
 
@@ -132,25 +132,6 @@ public class IngameState extends State {
         }
     }
 
-    @Deprecated
-    void rotateColorArray(float angle, int layer) {
-        //more realistic rotation range
-
-        Color[] prev = new Color[numSlices];
-        int multiplier = MathUtils.floor(angle / (360 / numSlices));
-        if (multiplier < 0) multiplier = numSlices - -1 * multiplier;
-        if (Math.abs(angle) > 360 / numSlices * multiplier + 30) multiplier++;
-
-        for (int i = 0; i < numSlices; i++){
-            prev[i] = sliceColor[layer][i];
-        }
-
-            for (int i = numSlices - 1; i >= 0; i--){
-                if (i - multiplier >= 0)
-                    sliceColor[dragLayer][i] = prev[i - multiplier];
-                else sliceColor[dragLayer][i] = prev[numSlices - (multiplier - i)];
-            }
-    }
 
     void rotateLayer(float angle, int layer) {
         int shift = MathUtils.round(angle * numSlices / 360f);
@@ -164,9 +145,18 @@ public class IngameState extends State {
         }
     }
 
+    void changeSlices(int slice, int from, int to){
+        Color color = sliceColor[from][slice];
+        sliceColor[from][slice] = sliceColor[to][slice];
+        sliceColor[to][slice] = color;
+    }
+
     void inputHandler() {
         if (!Gdx.input.isTouched()) {
             if(dragging) {
+                if (currentSlice == dragSlice && currentLayer == dragLayer + 1 || currentLayer == dragLayer - 1){
+                    changeSlices(dragSlice,currentLayer,dragLayer);
+                } else
                 rotateLayer(dragAngle, dragLayer);
                 dragLayer = 0;
                 dragSlice = 0;
@@ -198,9 +188,16 @@ public class IngameState extends State {
             if(dragSlice < 0) dragSlice += numSlices;
         }
 
+        currentLayer = MathUtils.floor(currentPosition.len() / (gapSize + sliceSize));
+        currentSlice = MathUtils.floor(
+                MathUtils.atan2(currentPosition.y, currentPosition.x) / (MathUtils.PI2 / numSlices));
+        if(currentSlice < 0) currentSlice += numSlices;
+
+
         dragAngle = MathUtils.atan2(currentPosition.y, currentPosition.x)
                 - MathUtils.atan2(touchPosition.y, touchPosition.x);
         dragAngle *= MathUtils.radiansToDegrees;
+
     }
 
     @Override
