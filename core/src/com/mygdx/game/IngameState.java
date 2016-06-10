@@ -147,6 +147,8 @@ public class IngameState extends State {
 
     void changeSlices(int slice, int from, int to){
         Color color = sliceColor[from][slice];
+        if (from - to > 0) to = from - 1;
+        else if (from - to < 0) to = from + 1;
         sliceColor[from][slice] = sliceColor[to][slice];
         sliceColor[to][slice] = color;
     }
@@ -154,12 +156,14 @@ public class IngameState extends State {
     void inputHandler() {
         if (!Gdx.input.isTouched()) {
             if(dragging) {
-                rotateLayer(dragAngle, dragLayer);
-                changeSlices(currentSlice, dragLayer, currentLayer);
+                if (dragSlice == currentSlice)
+                    changeSlices(currentSlice, dragLayer, currentLayer);
+                else rotateLayer(dragAngle, dragLayer);
                 dragLayer = 0;
                 dragSlice = 0;
                 dragAngle = 0;
                 dragging = false;
+                checkWin();
             }
             return;
         }
@@ -195,6 +199,18 @@ public class IngameState extends State {
         dragAngle = MathUtils.atan2(currentPosition.y, currentPosition.x)
                 - MathUtils.atan2(touchPosition.y, touchPosition.x);
         dragAngle *= MathUtils.radiansToDegrees;
+    }
+
+    void checkWin(){
+        int counter, condition = 0;
+        for (int i = 0; i < numLayers; i++){
+            counter = 0;
+            for (int j = 1; j < numSlices; j++){
+                if (sliceColor[j][i] == sliceColor[j-1][i]) counter++;
+            }
+            if (counter == numSlices - 1) condition++;
+        }
+        if (condition == numSlices) System.out.println("WIN");
     }
 
     @Override
